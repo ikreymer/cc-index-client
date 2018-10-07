@@ -1,20 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from Queue import Empty
+from multiprocessing.queues import Empty
 from multiprocessing import Process, Queue, Value, cpu_count
 
 import requests
 import shutil
-import urllib
-import sys
 import signal
 import random
 import os
+from urllib.parse import urljoin
+from urllib.parse import urlencode
+from urllib.parse import quote
 
 import logging
 
-from urlparse import urljoin
 from bs4 import BeautifulSoup
 
 DEF_API_BASE = 'http://index.commoncrawl.org/'
@@ -36,7 +36,7 @@ def get_num_pages(api_url, url, page_size=None):
     if page_size:
         query['pageSize'] = page_size
 
-    query = urllib.urlencode(query)
+    query = urlencode(query)
 
     # Get the result
     session = requests.Session()
@@ -79,7 +79,7 @@ def fetch_result_page(job_params):
     if job_params.get('page_size'):
         query['pageSize'] = job_params['page_size']
 
-    query = urllib.urlencode(query)
+    query = urlencode(query)
 
     # format filename to number of digits
     nd = len(str(num_pages))
@@ -151,6 +151,7 @@ def do_work(job_queue, counter=None):
 
             logging.info('{0} page(s) of {1} finished'.format(num_done,
                                                               job['num_pages']))
+
         except Empty:
             pass
 
@@ -193,7 +194,7 @@ def run_workers(num_workers, jobs, shuffle):
 
     workers = []
 
-    for i in xrange(0, num_workers):
+    for i in range(0, num_workers):
         tmp = Process(target=do_work,
                       args=(job_queue, counter))
         tmp.start()
@@ -334,7 +335,7 @@ def read_index(r, prefix=None):
 
         output_prefix = output_prefix.strip('/')
         output_prefix = output_prefix.replace('/', '-')
-        output_prefix = urllib.quote(output_prefix) + '-'
+        output_prefix = quote(output_prefix) + '-'
     else:
         output_prefix = r.output_prefix
 
